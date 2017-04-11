@@ -13,7 +13,7 @@ This document is a proposed specification for the deployment APIs that consultat
 
 Allowing a smooth yet secure deployment requires a symetric set of APIs:
 
- * one part must be run and maintained by the service *provider* ([Cap Collectif](https://cap-collectif.com/) for instance, among others) ;
+ * one part must be run and maintained by the service *provider* ;
  * the other part must be run by the *platform*, to collect feedback and informations from the service providers.
 
 This specification emphazises the "providers" part, but also gives some hints on the "*platform*" side:
@@ -32,12 +32,9 @@ Some design principles:
 
 The basic deployment workflow includes several steps:
 
- * 1- a user requests a `example.consultation.gouv.fr` instance on the *platform* website. His request is (email) verified, rate-limited and, if it seems legitimate, the instance creation process is launched ;
- * 2- the *platform* creates the DNS entries, depending on the requirements of the *provider*:
-   * a `CNAME` dns entry is created, which links `example.consultation.gouv.fr` to a DNS name given by the provider. **This supposes that all the consultation platforms created through this API will hit the very same front server - which is BAD for scalability. An improved version should allow the provider to change the CNAME target  for each instance through an API (as long as the default CNAME target)**
-   * if required by the provider, `SPF` and `DKIM` entries have to be created for `@example.consultation.gouv.fr`. All the outgoing emails will be sent using a `no-reply@example.consultation.gouv.fr` email address.
- * 3- the provider's `/instances` creation endpoint is called by the *platform*, which then displays an informative message to the user ;
- * 4- the *provider* deploys the instance - this is done synchronously or asynchronously, and the *platform* will get an appropriate status code. Once completed, the deployment status and metadata are sent to the *platform*'s `/instances/{requestIdentifier}` endpoint using http's `PATCH` method. The "metadata" is a flat key-value array, which may contain several informations that the *provider* could find interesting to communicate to the *platform* (admin interface url, admin username, admin password, instance creation duration, http authentication credentials, etc.)
+ * 1- a user requests a `https//consultation.etalab.gouv.fr/example` instance on the *platform* website. His request is (email) verified, rate-limited and, if it seems legitimate, the instance creation process is launched ;
+ * 2- the provider's `/instances` creation endpoint is called by the *platform*, which then displays an informative message to the user ;
+ * 3- the *provider* deploys the instance - this is done synchronously or asynchronously, and the *platform* will get an appropriate status code. Once completed, the deployment status and metadata are sent to the *platform*'s `/instances/{requestIdentifier}` endpoint using http's `PATCH` method. The "metadata" is a flat key-value array, which may contain several informations that the *provider* could find interesting to communicate to the *platform* (admin interface url, admin username, admin password, instance creation duration, http authentication credentials, etc.)
 
 Additional instance-lifecycle management operations have not been documented using this workflow but could be useful in the future. Here are some ideas:
 
@@ -51,8 +48,8 @@ The OpenAPI (Swagger) specification is an API description format which allows to
 
 You may use the [Swagger editor](http://editor.swagger.io/) to read the specification in a more graphical way:
 
- * [see the *providers* API definition](http://editor.swagger.io/#/?import=https://raw.githubusercontent.com/cap-collectif/consultation-gouv-fr-deployment-api/master/provider.swagger.yml) ;
- * [see the *platform*'s API definition](http://editor.swagger.io/#/?import=https://raw.githubusercontent.com/cap-collectif/consultation-gouv-fr-deployment-api/master/platform.swagger.yml) ;
+ * [see the *providers* API definition](http://editor.swagger.io/#/?import=https://raw.githubusercontent.com/consultation-gouv/specs-apis-deploiement/master/provider.swagger.yml) ;
+ * [see the *platform*'s API definition](http://editor.swagger.io/#/?import=https://raw.githubusercontent.com/consultation-gouv/specs-apis-deploiement/master/platform.swagger.yml) ;
 
 You may generate implementations of both APIs clients in various languages by using the [Swagger codegen](https://github.com/swagger-api/swagger-codegen) tool.
 
