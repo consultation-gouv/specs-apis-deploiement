@@ -154,4 +154,4 @@ definitions:
         type: array
         description: List of the items
         items:
-          $ref: "#/definitions/Instance"
+          $ref: "#/definitions/Instances"
