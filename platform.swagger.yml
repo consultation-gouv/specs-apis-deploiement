@@ -1,0 +1,157 @@
+swagger: '2.0'
+info:
+  version: "0.2.0"
+  title: French consultations portal platform endpoints definition
+  description: >
+    This document defines the API endpoints exposed by the French consultations portal platform for enabling SaaS providers on-demand deployment facilities.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+host: 'api.consultation.gouv.fr'
+basePath: '/'
+schemes:
+ - 'https'
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: 'X-Api-Key'
+    in: header
+security:
+  -
+    api_key: [] # The Api Key depends on the provider
+paths:
+  /instanceRequests:
+    get:
+      description: |
+        Gets the list of instance requests (scoped on the provider associated with the token).
+      security:
+        -
+          api_key: []
+      responses:
+        200:
+          description: Successful response, an array of Instances
+          schema:
+            $ref: "#/definitions/Instances"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: "#/definitions/Error"
+  /instanceRequests/{id}:
+    patch:
+      summary: Edit instance request informations.
+      description: |
+        Changes some instance informations - in particular, the creation status,
+        but also the username and other metadata. The API Key used to
+        authenticate this request must be associated to the instance provider.
+      parameters:
+        - name: id
+          in: path
+          description: id of the instance request (this is the same as the `requestIdentifier` sent to the provider)
+          required: true
+          type: string
+          format: uuid
+        - name: payload
+          in: body
+          description: payload representing the instance edition data
+          required: true
+          schema:
+            $ref: "#/definitions/InstanceEditionPayload"
+      security:
+        -
+          api_key: []
+      responses:
+        200:
+          description: The edited instance
+          schema:
+            $ref: "#/definitions/Instance"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: "#/definitions/Error"
+definitions:
+  Error:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      errors:
+        type: object
+        additionalProperties: {}
+  Instance:
+    type: object
+    required:
+      - id
+      - name
+      - slug
+      - status
+      - adminName
+      - adminEmail
+    properties:
+      id:
+        type: string
+        description: "Id if the instance request. This is the same as the `requestIdentifier` sent to the provider"
+      name:
+        type: string
+        description: "Name of the instance / debate to create, as requested by the user."
+      slug:
+        type: string
+        description: Slug of the instance to create, which will be used in the subdomain part of as a url path (depending on how the debate gets created).
+      url:
+        type: string
+        format: url
+        description: complete url where to find the debate
+      status:
+        type: string
+        description: status of the instance
+        enum:
+          - requested # before the instance is created
+          - running # for running instances
+          - failure # if the instance could not be created.
+          - terminated # if the instance has been terminated
+      adminName:
+        type: string
+        description: name of the instance admin user (may be in sync with the running instance, or as given in the request)
+      adminEmail:
+        type: string
+        format: email
+        description: email of the instance admin user (may be in sync with the running instance, or as given in the request)
+      adminPhone:
+        type: string
+        description: phone number of the instance admin user (may be in sync with the running instance, or as given in the request)
+      adminOrganizationName:
+        type: string
+        description: name of the organization of the admin user (may be in sync with the running instance, or as given in the request)
+      metadata:
+        type: object
+        additionalProperties: {}
+  InstanceEditionPayload:
+    type: object
+    required:
+      - status
+    properties:
+      status:
+        type: string
+        description: status of the instance
+        enum:
+          - running # for running instances
+          - failure # if the instance could not be created.
+          - terminated # if a termination request has been completed
+      metadata: # various metadata associated to the instance, that the provider considers useful for the French consultations portal
+        type: object
+        additionalProperties: {}
+  Instances:
+    type: object
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        description: List of the items
+        items:
+          $ref: "#/definitions/Instances"
