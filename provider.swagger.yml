@@ -167,7 +167,6 @@ definitions:
         description: email of the instance admin user
       requestIdentifier:
         type: string
-        required: false
         description: the instance request identifier (generated and provided by the client)
       status:
         type: string
@@ -239,4 +238,4 @@ definitions:
         type: array
         description: List of the items
         items:
-          $ref: "#/definitions/Instances"
+          $ref: "#/definitions/Instance"
