@@ -177,9 +177,6 @@ definitions:
           - running # for running instances
           - failure # if the instance could not be created.
           - terminated # if a termination request has been completed
-      adminPhone:
-        type: string
-        description: phone number of the instance admin user (as provided by the client)
       adminOrganizationName:
         type: string
         description: name of the organization of the admin user (as provided by the client)

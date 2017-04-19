@@ -1,0 +1,183 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: Swagger mock
+  description: French consultations portal platform providers endpoints definition
+  termsOfService: http://consultation.etalab.gouv.fr/faq
+  contact:
+    name: Etalab
+    email: support.consultation@etalab.gouv.fr
+  license:
+    name: MIT
+host:
+basePath: /api
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /instances:
+    get:
+      description: |
+        Returns all instances from the provider system that Etalab has access to
+      operationId: findInstances
+      parameters:
+              - name: slug
+                in: query
+                required: false
+                description: filter items by slug
+                type: string
+      responses:
+        200:
+          description: Instances response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Instance'
+            x-type-options:
+              min: 0
+              max: 10
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: Creates a new instance
+      operationId: addInstance
+      parameters:
+              - name: payload
+                in: body
+                description: payload representing the instance creation request
+                required: true
+                schema:
+                  $ref: "#/definitions/NewInstance"
+      responses:
+              201:
+                description: The instance (created synchronously)
+                headers:
+                  Location:
+                    description: URI of the newly created resource
+                    type: string
+                schema:
+                  $ref: "#/definitions/Instance"
+              202:
+                description: The instance (asynchronous creation)
+                headers:
+                  Location:
+                    description: URI of the newly created resource
+                    type: string
+                schema:
+                  $ref: "#/definitions/Instance"
+              400:
+                description: >
+                    The request cannot be executed, for reasons due to the request that will normally preclude a retry.
+                    Examples: slug too long.
+                    Special case: If the slug already exists, the answer should be a 400 UNLESS the instance is in a failed state (AND it can be retried.)
+                    In that case, retry creating the instance with the same Location as previously, and return a 201, 202 or 500 appropriately.
+                schema:
+                    $ref: "#/definitions/Error"
+              500:
+                  description: >
+                    Internal error. Retrying may be possible.
+                  schema:
+                    $ref: "#/definitions/Error"
+              default:
+                  description: >
+                    Unexpected error
+                  schema:
+                    $ref: "#/definitions/Error"
+  /instances/{instanceId}:
+    get:
+      description: Returns an instance based on a single ID
+      operationId: find Instance by id
+      parameters:
+              - name: instanceId
+                in: path
+                description: id of the instance
+                required: true
+                type: string
+      responses:
+              200:
+                description: Successful response, the details of an instance.
+                schema:
+                  $ref: "#/definitions/Instance"
+              default:
+                description: Unexpected error
+                schema:
+                  $ref: "#/definitions/Error"
+definitions:
+  Instance:
+    allOf:
+      - $ref: '#/definitions/NewInstance'
+      - required:
+        - id
+        properties:
+          id:
+            type: integer
+            format: int64
+            x-type-options:
+              min: 1
+              max: 2
+          # demo of a fixed type value
+          created:
+            type: date
+          status:
+            type: object
+            x-chance-type: fixed
+            x-type-value:
+              type: 'running'
+
+  NewInstance:
+    required:
+        - requestIdentifier
+        - name
+        - slug
+        - adminName
+        - adminEmail
+    properties:
+      name:
+        type: string
+        minLength: 3
+        maxLength: 30
+      url:
+        type: string
+        x-chance-type: url
+      slug:
+        type: string
+        minLength: 3
+        maxLength: 30
+      adminName:
+        type: string
+        x-chance-type: name
+        minLength: 3
+        maxLength: 30
+      adminEmail:
+        type: string
+        x-chance-type: email
+      requestIdentifier:
+        type: string
+        x-chance-type: guid
+      status:
+        type: string
+        enum:
+          - requested # before the instance is created
+          - running # for running instances
+          - failure # if the instance could not be created.
+          - terminated # if a termination request has been completed
+      adminOrganizationName:
+         type: string
+         minLength: 3
+         maxLength: 30
+  Error:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+
